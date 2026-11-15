@@ -94,6 +94,7 @@ pub fn dialog_topic(d: &Dialog, options: OptionsPage) -> &'static str {
         Dialog::TextToTable(_) => "objects/tables#convert",
         Dialog::PasteSpecial(_) => "objects/paste-special",
         Dialog::Barcode(_) => "objects/barcodes",
+        Dialog::Formula(_) => "objects/formulas",
         Dialog::ConvertToBitmap(_) => "bitmaps/convert-to-bitmap",
         Dialog::PictureCaptions(_) => "bitmaps/picture-captions",
         Dialog::StraightenImage(_) => "bitmaps/resample-and-straighten#straighten",

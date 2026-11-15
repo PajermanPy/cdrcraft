@@ -1445,6 +1445,8 @@ pub enum Dialog {
     /// Bitmaps > Picture Captions (#2180).
     PictureCaptions(crate::captions::Captions),
     Barcode(BarcodeState),
+    /// Object > Insert > Formula (#2183).
+    Formula(crate::ui::formula_dialog::FormulaState),
     ConvertToBitmap(crate::bitmap_modes::ConvertOptions),
     StraightenImage(crate::ui::straighten_dialog::StraightenState),
     Resample(crate::resample::ResampleState),
@@ -3110,6 +3112,7 @@ pub fn show(app: &mut App, ctx: &Context) {
             });
         }
         Dialog::Barcode(st) => crate::ui::barcode_wizard::dialog(app, ctx, st, &mut close),
+        Dialog::Formula(st) => crate::ui::formula_dialog::dialog(app, ctx, st, &mut close),
         Dialog::CopyProperties(c) => {
             window(ctx, tr("dialog.copy_properties")).show(ctx, |ui| {
                 ui.checkbox(&mut c.outline_pen, tr("dialog.copy_outline_pen"));
@@ -8827,6 +8830,7 @@ pub(crate) mod tests {
             Dialog::CreatePattern { vector: false },
             Dialog::PasteSpecial(PasteSpecialState::default()),
             Dialog::Barcode(BarcodeState::default()),
+            Dialog::Formula(Default::default()),
             Dialog::ConvertToBitmap(crate::bitmap_modes::ConvertOptions {
                 dpi: 150.0,
                 mode: crate::bitmap_modes::ConvertMode::BlackWhite,
