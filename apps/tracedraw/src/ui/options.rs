@@ -171,7 +171,7 @@ impl OptionsSet {
 
     fn title(self) -> String {
         match self {
-            OptionsSet::App => trf("options.title_app", &[("app", "TraceDraw")]),
+            OptionsSet::App => trf("options.title_app", &[("app", "CorelCraft")]),
             OptionsSet::Customization => tr("options.title_customization"),
             OptionsSet::Tools => tr("options.title_tools"),
             OptionsSet::Global => tr("options.title_global"),

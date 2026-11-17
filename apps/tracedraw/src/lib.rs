@@ -473,7 +473,7 @@ pub fn run() -> eframe::Result<()> {
             .with_inner_size(splash::SIZE)
             .with_decorations(false)
             .with_resizable(true)
-            .with_title("TraceDraw")
+            .with_title("CorelCraft")
             .with_app_id(splash::APP_ID)
     } else {
         splash::main_window_builder(&settings, plain)
