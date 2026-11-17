@@ -1335,7 +1335,7 @@ fn fields(ui: &mut Ui, st: &mut SaveAsState) {
                 if cdr {
                     tr("file.cdr_files")
                 } else {
-                    "TraceDraw (*.tdraw)".to_string()
+                    "CorelCraft (*.tdraw)".to_string()
                 }
             },
             260.0,

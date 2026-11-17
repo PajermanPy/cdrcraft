@@ -774,7 +774,7 @@ fn main() -> ExitCode {
                 let asked: u16 = std::env::var("TRACEDRAW_CDR_VERSION")
                     .ok()
                     .and_then(|v| v.trim().parse().ok())
-                    .unwrap_or(tracedraw_cdr::write::DEFAULT_VERSION);
+                    .unwrap_or(26); // CorelCraft: CorelDRAW 2025 abre hasta la versión 26
                 let allowed = tracedraw_cdr::write::checked_versions();
                 if !allowed.contains(&asked) {
                     eprintln!(

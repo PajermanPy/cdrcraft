@@ -876,7 +876,7 @@ fn message_box_with(
 ) -> Option<usize> {
     let mut picked = None;
     let before = take_close_request(ctx);
-    window("TraceDraw").show(ctx, |ui| {
+    window("CorelCraft").show(ctx, |ui| {
         ui.set_min_width(360.0);
         ui.horizontal(|ui| {
             ui.add_space(4.0);
@@ -1592,7 +1592,7 @@ mod tests {
     fn a_message_box_is_laid_out_in_its_own_size_from_its_first_frame() {
         let ctx = crate::theme::ui_context();
         let screen = Rect::from_min_size(Pos2::ZERO, Vec2::new(1366.0, 700.0));
-        let id = egui::Id::new(("chrome_dialog", "TraceDraw".to_string()));
+        let id = egui::Id::new(("chrome_dialog", "CorelCraft".to_string()));
         let run = |text: &str, buttons: &[&str]| {
             let input = egui::RawInput {
                 screen_rect: Some(screen),

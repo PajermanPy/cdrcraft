@@ -7771,7 +7771,7 @@ impl App {
                 "PageMaker (*.pmd, *.pm6, *.p65)",
                 &crate::pmd_open::EXTENSIONS,
             )
-            .add_filter("TraceDraw (*.tdraw)", &["tdraw"])
+            .add_filter("CorelCraft (*.tdraw)", &["tdraw"])
     }
 
     /// Open `path`, or show the drawing already open from it (read from
@@ -9503,7 +9503,7 @@ impl App {
                 crate::i18n::tr("file.spreadsheets"),
                 &crate::spreadsheet_import::EXTENSIONS,
             )
-            .add_filter("TraceDraw (*.tdraw)", &["tdraw"])
+            .add_filter("CorelCraft (*.tdraw)", &["tdraw"])
             .add_filter(crate::i18n::tr("file.cdr_files"), &["cdr", "cdt", "cdrt"])
             .add_filter(crate::i18n::tr("file.symbol_library"), &["csl"])
             .add_filter("CMX (*.cmx)", &["cmx"])

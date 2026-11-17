@@ -10,6 +10,9 @@ Cambios de CorelCraft sobre TraceDraw (rama `corelcraft`):
 - Paleta integrada "Budapest" con los colores de marca.
 - Búsqueda de actualizaciones desactivada por defecto (las actualizaciones de TraceDraw reemplazarían a CorelCraft).
 - El texto "Acerca de" cita a TraceDraw y su licencia.
+- Guarda .cdr en versión 26 por defecto (CorelDRAW 2025 no abre la 27, que es la predeterminada de TraceDraw). En Guardar como se puede elegir otra.
+- Herramienta de línea de comandos instalada como `corelcraft-cli` (convertir, inspeccionar, miniaturas).
+- Pruebas: correrlas con `LANG=C.UTF-8 LC_ALL=C.UTF-8 cargo test --release -p tracedraw`; con el sistema en español muchas fallan porque esperan textos en inglés.
 
 Para traer mejoras nuevas de TraceDraw: `git fetch upstream && git merge upstream/main` en la rama `corelcraft`.
 

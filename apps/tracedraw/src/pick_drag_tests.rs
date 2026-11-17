@@ -11009,11 +11009,9 @@ fn save_as_starts_at_the_cdr_type_and_version_the_options_set() {
             other => panic!("no Save Drawing dialog: {other:?}"),
         }
     };
-    // By default a new drawing is offered as TraceDraw, version 27 for .cdr.
-    assert_eq!(
-        save_as(&ctx, &mut app),
-        (false, tracedraw_cdr::write::NEWEST_VERSION)
-    );
+    // CorelCraft: by default a new drawing is offered in version 26 for .cdr
+    // (CorelDRAW 2025 opens up to 26).
+    assert_eq!(save_as(&ctx, &mut app), (false, 26));
     app.dialog = crate::ui::dialogs::Dialog::None;
     // Options > Global > File Formats: version 15 and .cdr for new drawings.
     app.settings.formats.cdr_version = 15;
@@ -11059,13 +11057,13 @@ fn the_cdr_version_chosen_in_options_survives_a_restart_and_starts_save_as() {
     let (ctx, mut app, _) = setup();
     app.dialog = Dialog::Options;
     app.options_page = OptionsPage::FileFormats;
-    let newest = crate::ui::save_as::version_label(tracedraw_cdr::write::NEWEST_VERSION);
+    let newest = crate::ui::save_as::version_label(26); // CorelCraft default
     let wanted = crate::ui::save_as::version_label(15);
     let mut texts = Vec::new();
     for _ in 0..4 {
         texts = texts_drawn(&ctx, &mut app, Vec::new());
     }
-    let combo = text_at(&texts, &newest).expect("the version list shows v27");
+    let combo = text_at(&texts, &newest).expect("the version list shows v26");
     click_at(&ctx, &mut app, combo, Modifiers::NONE);
     // The list opens; scroll it down until v15 shows.
     let mut item = None;
