@@ -1,4 +1,27 @@
-# Privacy policy
+# Privacy policy (CDRCraft)
+
+CDRCraft is based on TraceDraw. Everything below applies to CDRCraft, with
+one addition: **crash reports**.
+
+## Crash reports (CDRCraft)
+
+When CDRCraft closes because of an error, it writes `crash.log` in its
+settings folder and keeps the log of that run as `previous.log`. At the
+next start, if the build has a crash-report service set
+(`CDRCRAFT_CRASH_DSN`), CDRCraft asks once whether reports may be sent
+automatically. If you say yes, that report and every later one is sent to
+that service (Sentry protocol: sentry.io or a self-hosted GlitchTip). A
+report holds the error message and where it happened, the version, the
+operating system and processor type, and up to 64 KB of the end of the
+program's log, with your home folder replaced by `~` and your user name
+by `<usuario>`. It never holds your drawings or files. The answer is kept
+as `crash_reports` in `settings.json` in the settings folder
+(`~/.config/cdrcraft` on Linux); set it to `false` to stop, or delete the
+line to be asked again. Reports already sent or declined stay in that
+folder as `crash-<time>.log`.
+
+---
+
 
 TraceDraw is a vector editor that runs on your own computer. This policy
 covers the desktop program (installer, portable zip, Microsoft Store,
@@ -6,8 +29,8 @@ macOS and Linux packages), `tracedraw-cli` and the browser version.
 
 ## What TraceDraw collects
 
-Nothing. TraceDraw has no accounts, no telemetry, no analytics, no crash
-reporting and no advertising. It does not send your drawings, your files
+Nothing. TraceDraw has no accounts, no telemetry, no analytics and no
+advertising; CDRCraft adds only the crash reports described above. It does not send your drawings, your files
 or anything about you or your computer anywhere, except what you ask the
 AI features to send to the AI service you set up yourself, and drawings
 you save to your own GitHub repository (see below).

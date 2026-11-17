@@ -320,7 +320,7 @@ mod tests {
 
         // The release build makes the DLL, signs it with the programs and
         // the setup is built from the folder it lies in.
-        let ci = repo_file(".github/workflows/build.yml");
+        let ci = repo_file(".github/workflows-tracedraw/build.yml");
         let build = ci
             .lines()
             .find(|l| l.contains("cargo build --release") && l.contains("-p tracedraw "))

@@ -5005,10 +5005,10 @@ fn help_menu(app: &mut App, ui: &mut Ui) {
         app.options_page = crate::ui::dialogs::OptionsPage::General;
     }
     if item(ui, "menu.help.community", "", true) {
-        app.open_url("https://github.com/tracedraw/tracedraw/discussions");
+        app.open_url(&format!("{}/discussions", crate::ui::brand::REPO_URL));
     }
     if item(ui, "menu.help.support", "", true) {
-        app.open_url("https://github.com/tracedraw/tracedraw/issues");
+        app.open_url(&format!("{}/issues", crate::ui::brand::REPO_URL));
     }
     sep(ui);
     if item(ui, "menu.help.about", "", true) {

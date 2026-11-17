@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 512" width="1600" height="512">
+  <rect width="1600" height="512" fill="#F5EFE9"/>
+  <image href="cdrcraft-icono.svg" x="40" y="56" width="400" height="400"/>
+  <text x="500" y="290" font-family="Montserrat" font-weight="800" font-size="200" fill="#0B0B0F" letter-spacing="-4">CDR<tspan fill="#C8102E">Craft</tspan></text>
+  <text x="508" y="380" font-family="Montserrat" font-weight="600" font-size="34" fill="#0B0B0F" opacity="0.7" letter-spacing="3">COMPATIBLE CON ARCHIVOS DE CORELDRAW</text>
+</svg>

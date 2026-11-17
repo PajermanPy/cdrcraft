@@ -58,6 +58,11 @@ pub fn init() {
     let restarted = std::env::args().any(|a| a.starts_with("--renderer="));
     let file = dir.as_ref().and_then(|d| {
         let _ = std::fs::create_dir_all(d);
+        // CDRCraft: the log of a run that crashed is kept for its report
+        // (crash_report.rs) before this run writes the log afresh.
+        if !restarted && crash_path(d).exists() {
+            let _ = std::fs::copy(log_path(d), crate::crash_report::previous_log_path(d));
+        }
         std::fs::OpenOptions::new()
             .create(true)
             .write(true)
@@ -75,7 +80,7 @@ pub fn init() {
     .target(env_logger::Target::Pipe(Box::new(Tee { file })))
     .init();
     log::info!(
-        "TraceDraw {} on {} {}",
+        "CDRCraft {} (TraceDraw) on {} {}",
         env!("CARGO_PKG_VERSION"),
         std::env::consts::OS,
         std::env::consts::ARCH
@@ -180,7 +185,7 @@ pub fn report(info: &std::panic::PanicHookInfo<'_>) -> String {
         .map(|l| format!("{}:{}", l.file(), l.line()))
         .unwrap_or_default();
     format!(
-        "TraceDraw {} ({} {}) stopped: {what} at {place}\n{}",
+        "CDRCraft {} ({} {}) stopped: {what} at {place}\n{}",
         env!("CARGO_PKG_VERSION"),
         std::env::consts::OS,
         std::env::consts::ARCH,
@@ -204,7 +209,7 @@ fn message(text: String) {
     #[cfg(not(target_os = "android"))]
     let _ = rfd::MessageDialog::new()
         .set_level(rfd::MessageLevel::Error)
-        .set_title("CorelCraft")
+        .set_title("CDRCraft")
         .set_description(text)
         .set_buttons(rfd::MessageButtons::Ok)
         .show();
@@ -222,9 +227,9 @@ fn show(report: &str, saved: Option<&Path>) {
     let first = report.lines().next().unwrap_or_default();
     let mut text = format!("{first}\n\n");
     if let Some(p) = saved {
-        text.push_str(&format!(
-            "The details are in {}. Please attach that file to an issue at https://github.com/tracedraw/tracedraw/issues",
-            p.display()
+        text.push_str(&crate::i18n::trf(
+            "dialog.crash_saved",
+            &[("path", &p.display().to_string())],
         ));
     }
     message(text);

@@ -293,7 +293,7 @@ impl Default for FormatPrefs {
             remember_last: true,
             import_place: ImportPlace::AsInFile,
             import_with_cursor: true,
-            cdr_version: 26, // CorelCraft: CorelDRAW 2025 abre hasta la versión 26
+            cdr_version: 26, // CDRCraft: CorelDRAW 2025 abre hasta la versión 26
             save_new_as_cdr: false,
             skip_export_dialog: false,
             pdf_text_as_curves: false,

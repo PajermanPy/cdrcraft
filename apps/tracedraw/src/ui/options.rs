@@ -171,7 +171,7 @@ impl OptionsSet {
 
     fn title(self) -> String {
         match self {
-            OptionsSet::App => trf("options.title_app", &[("app", "CorelCraft")]),
+            OptionsSet::App => trf("options.title_app", &[("app", "CDRCraft")]),
             OptionsSet::Customization => tr("options.title_customization"),
             OptionsSet::Tools => tr("options.title_tools"),
             OptionsSet::Global => tr("options.title_global"),
@@ -1043,7 +1043,7 @@ fn general_page(app: &mut App, ui: &mut Ui) {
     chrome::section(ui, &tr("options.getting_started"));
     ui.indent("gs", |ui| {
         grid("startup").show(ui, |ui| {
-            row_label(ui, &trf("options.on_startup", &[("app", "CorelCraft")]));
+            row_label(ui, &trf("options.on_startup", &[("app", "CDRCraft")]));
             let mut s = app.settings.startup;
             let tip = crate::ui::tips::pair("options.startup", "options.startup_desc");
             let changed = crate::ui::tips::tip_over(ui, tip, |ui| {

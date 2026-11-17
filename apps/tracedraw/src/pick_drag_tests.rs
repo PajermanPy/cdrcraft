@@ -11009,7 +11009,7 @@ fn save_as_starts_at_the_cdr_type_and_version_the_options_set() {
             other => panic!("no Save Drawing dialog: {other:?}"),
         }
     };
-    // CorelCraft: by default a new drawing is offered in version 26 for .cdr
+    // CDRCraft: by default a new drawing is offered in version 26 for .cdr
     // (CorelDRAW 2025 opens up to 26).
     assert_eq!(save_as(&ctx, &mut app), (false, 26));
     app.dialog = crate::ui::dialogs::Dialog::None;
@@ -11057,7 +11057,7 @@ fn the_cdr_version_chosen_in_options_survives_a_restart_and_starts_save_as() {
     let (ctx, mut app, _) = setup();
     app.dialog = Dialog::Options;
     app.options_page = OptionsPage::FileFormats;
-    let newest = crate::ui::save_as::version_label(26); // CorelCraft default
+    let newest = crate::ui::save_as::version_label(26); // CDRCraft default
     let wanted = crate::ui::save_as::version_label(15);
     let mut texts = Vec::new();
     for _ in 0..4 {

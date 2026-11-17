@@ -296,7 +296,7 @@ pub fn gray_palette() -> Vec<(String, Color)> {
         .collect()
 }
 
-/// CorelCraft: the Budapest brand colours.
+/// CDRCraft: the Budapest brand colours.
 pub fn budapest_palette() -> Vec<(String, Color)> {
     [
         ("Rojo Budapest", 0xC8102E),

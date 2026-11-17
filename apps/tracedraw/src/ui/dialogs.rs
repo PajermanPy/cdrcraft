@@ -273,10 +273,6 @@ pub fn set_export_dpi(st: &mut ExportState, dpi: f64) {
     st.dpi = dpi;
 }
 
-/// Where a `.cdr` file that does not open right is sent in.
-pub const CDR_ISSUE: &str =
-    "https://github.com/tracedraw/tracedraw/issues/new?template=cdr_file.yml";
-
 pub const PDF_STANDARDS: [&str; 4] = ["PDF 1.4", "PDF/X-1a:2003", "PDF/X-3:2003", "PDF/X-4"];
 
 impl ExportState {
@@ -2844,7 +2840,7 @@ pub fn show(app: &mut App, ctx: &Context) {
                     app.settings.save();
                 }
                 if i == 1 && notes.unread > 0 {
-                    app.open_url(crate::ui::dialogs::CDR_ISSUE);
+                    app.open_url(&format!("{}/issues/new", crate::ui::brand::REPO_URL));
                 }
                 close = true;
             }

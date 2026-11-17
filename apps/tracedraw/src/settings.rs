@@ -689,6 +689,10 @@ pub struct Settings {
     /// When that check last ran, seconds since 1970.
     #[serde(default)]
     pub last_update_check: u64,
+    /// CDRCraft: crash reports may be sent automatically (crash_report.rs).
+    /// None until the user is asked, the first time there is one to send.
+    #[serde(default)]
+    pub crash_reports: Option<bool>,
     /// A release the user chose to skip: not offered again at start.
     #[serde(default)]
     pub skipped_update: String,
@@ -2215,6 +2219,7 @@ impl Default for Settings {
             check_updates: false,
             update_check_asked: true,
             last_update_check: 0,
+            crash_reports: None,
             skipped_update: String::new(),
             pending_update: String::new(),
             script_filters: Vec::new(),
@@ -2260,19 +2265,19 @@ pub fn config_dir() -> Option<PathBuf> {
     }
     #[cfg(target_os = "windows")]
     {
-        std::env::var_os("APPDATA").map(|p| PathBuf::from(p).join("TraceDraw"))
+        std::env::var_os("APPDATA").map(|p| PathBuf::from(p).join("CDRCraft"))
     }
     #[cfg(target_os = "macos")]
     {
         std::env::var_os("HOME")
-            .map(|p| PathBuf::from(p).join("Library/Application Support/TraceDraw"))
+            .map(|p| PathBuf::from(p).join("Library/Application Support/CDRCraft"))
     }
     #[cfg(not(any(target_os = "windows", target_os = "macos")))]
     {
         std::env::var_os("XDG_CONFIG_HOME")
             .map(PathBuf::from)
             .or_else(|| std::env::var_os("HOME").map(|p| PathBuf::from(p).join(".config")))
-            .map(|p| p.join("tracedraw"))
+            .map(|p| p.join("cdrcraft"))
     }
 }
 
@@ -3215,7 +3220,7 @@ mod tests {
         let folder = root.join("packaging/windows/portable").join(PORTABLE_DIR);
         assert!(folder.join("README.txt").is_file(), "{folder:?}");
         let workflow =
-            std::fs::read_to_string(root.join(".github/workflows/build.yml")).expect("workflow");
+            std::fs::read_to_string(root.join(".github/workflows-tracedraw/build.yml")).expect("workflow");
         assert!(workflow.contains(&format!("packaging\\windows\\portable\\{PORTABLE_DIR}")));
         assert!(workflow.contains(&format!("\\{PORTABLE_DIR}\",")));
     }

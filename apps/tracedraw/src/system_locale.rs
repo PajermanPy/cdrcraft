@@ -72,7 +72,13 @@ pub fn preferred_languages() -> Vec<String> {
     {
         browser_languages()
     }
-    #[cfg(not(target_arch = "wasm32"))]
+    // CDRCraft: tests run in English whatever the computer's language,
+    // since they look for English labels on screen.
+    #[cfg(all(test, not(target_arch = "wasm32")))]
+    {
+        Vec::new()
+    }
+    #[cfg(all(not(test), not(target_arch = "wasm32")))]
     {
         posix_languages(|name| std::env::var(name).ok())
     }

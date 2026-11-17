@@ -192,7 +192,7 @@ mod tests {
     const MANIFEST: &str = include_str!("../../../web/manifest.webmanifest");
     const WORKER: &str = include_str!("../../../web/sw.js");
     const BUILD_SCRIPT: &str = include_str!("../../../scripts/web/build.sh");
-    const CI: &str = include_str!("../../../.github/workflows/build.yml");
+    const CI: &str = include_str!("../../../.github/workflows-tracedraw/build.yml");
     const CHECK: &str = include_str!("../../../scripts/web/check_pwa.mjs");
 
     /// A drag with the button held on the canvas (a marquee, a move) is

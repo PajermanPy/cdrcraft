@@ -27,7 +27,14 @@ pub fn icon(ctx: &Context) -> Option<TextureHandle> {
     Some(tex)
 }
 
-/// CorelCraft: the embedded 256 px icon as the window's own icon
+/// CDRCraft's repository: bug reports and discussions go here, not to
+/// TraceDraw. Set at build time with `CDRCRAFT_REPO` (no trailing slash).
+pub const REPO_URL: &str = match option_env!("CDRCRAFT_REPO") {
+    Some(u) => u,
+    None => "https://github.com/cdrcraft/cdrcraft",
+};
+
+/// CDRCraft: the embedded 256 px icon as the window's own icon
 /// (`_NET_WM_ICON` on X11), so title bars and task bars show it even
 /// when the desktop's icon theme cache is out of date.
 pub fn window_icon() -> Option<egui::IconData> {

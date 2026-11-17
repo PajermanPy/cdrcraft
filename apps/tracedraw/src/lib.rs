@@ -59,6 +59,7 @@ mod copy_effect;
 mod copy_props;
 mod corner_widgets;
 mod corners;
+mod crash_report;
 mod crop_tool;
 mod curve_join;
 mod defaults;
@@ -445,6 +446,23 @@ pub fn run() -> eframe::Result<()> {
     // The language picked in Options, else the installer's, else the
     // system's (docs/behavior/language.md).
     i18n::set_language(i18n::startup_language_here(&settings.language));
+    // CDRCraft: a crash report left by the last run goes out now, if the
+    // user allows it (crash_report.rs).
+    #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
+    if !plain {
+        let outcome = crash_report::on_start(&mut settings);
+        if outcome != crash_report::Outcome::Nothing {
+            log::info!("crash report from the last run: {outcome:?}");
+        }
+    }
+    #[cfg(not(any(target_os = "android", target_arch = "wasm32")))]
+    if crash_report::test_crash_requested() {
+        std::thread::spawn(|| {
+            std::thread::sleep(std::time::Duration::from_secs(6));
+            let _ = std::panic::catch_unwind(|| panic!("CDRCRAFT_TEST_CRASH: fallo de prueba"));
+            std::process::exit(101);
+        });
+    }
     // Options > General > "Use the desktop's title bar": through XWayland
     // when the Wayland compositor draws no title bars (#2070), on by
     // default so that file drops arrive there (#2486). `--wayland` keeps
@@ -473,7 +491,7 @@ pub fn run() -> eframe::Result<()> {
             .with_inner_size(splash::SIZE)
             .with_decorations(false)
             .with_resizable(true)
-            .with_title("CorelCraft")
+            .with_title("CDRCraft")
             .with_app_id(splash::APP_ID);
         match crate::ui::brand::window_icon() {
             Some(icon) => b.with_icon(icon),
