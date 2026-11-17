@@ -296,6 +296,22 @@ pub fn gray_palette() -> Vec<(String, Color)> {
         .collect()
 }
 
+/// CorelCraft: the Budapest brand colours.
+pub fn budapest_palette() -> Vec<(String, Color)> {
+    [
+        ("Rojo Budapest", 0xC8102E),
+        ("Negro", 0x000000),
+        ("Blanco", 0xFFFFFF),
+        ("Grafito", 0x252B34),
+        ("Noche", 0x0B0B0F),
+        ("Bordó", 0x8A0F2A),
+        ("Marfil", 0xF5EFE9),
+    ]
+    .iter()
+    .map(|&(n, v)| (n.to_string(), Color::rgb8((v >> 16) as u8, (v >> 8) as u8, v as u8)))
+    .collect()
+}
+
 pub fn builtin_palettes() -> Vec<Palette> {
     vec![
         Palette {
@@ -316,6 +332,13 @@ pub fn builtin_palettes() -> Vec<Palette> {
             name: "Process".into(),
             key: "palette.process",
             colors: process_palette(),
+            builtin: true,
+            path: None,
+        },
+        Palette {
+            name: "Budapest".into(),
+            key: "palette.budapest",
+            colors: budapest_palette(),
             builtin: true,
             path: None,
         },

@@ -424,7 +424,7 @@ pub fn main_window_builder(settings: &Settings, plain: bool) -> egui::ViewportBu
         .with_inner_size(main_window_size(settings.window_size, None))
         .with_min_inner_size(MIN_SIZE)
         .with_maximized(settings.window_maximized && !plain)
-        .with_title("TraceDraw")
+        .with_title("CorelCraft")
         .with_app_id(APP_ID)
 }
 
@@ -433,7 +433,7 @@ pub fn main_window_builder(settings: &Settings, plain: bool) -> egui::ViewportBu
 /// `tracedraw.desktop` (its name and `StartupWMClass`) to show the icon.
 /// Left unset, eframe used the window's name, "TraceDraw", and docks such
 /// as Plank showed a blank icon (#1718).
-pub const APP_ID: &str = "tracedraw";
+pub const APP_ID: &str = "corelcraft";
 
 /// Turn the splash window into the main window: decorations, resizable,
 /// the kept size centred on the monitor. Sizes are worked out in system
@@ -758,14 +758,14 @@ mod tests {
     /// (#1718).
     #[test]
     fn the_window_says_which_desktop_file_it_belongs_to() {
-        let desktop = include_str!("../../../packaging/linux/tracedraw.desktop");
+        let desktop = include_str!("../../../packaging/linux/corelcraft.desktop");
         assert!(
             desktop
                 .lines()
                 .any(|l| l.trim() == format!("StartupWMClass={APP_ID}")),
             "{desktop}"
         );
-        assert_eq!(APP_ID, "tracedraw", "the file is tracedraw.desktop");
+        assert_eq!(APP_ID, "corelcraft", "the file is corelcraft.desktop");
         let main = main_window_builder(&Settings::default(), false);
         assert_eq!(main.app_id.as_deref(), Some(APP_ID));
     }

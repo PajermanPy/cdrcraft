@@ -204,7 +204,7 @@ fn message(text: String) {
     #[cfg(not(target_os = "android"))]
     let _ = rfd::MessageDialog::new()
         .set_level(rfd::MessageLevel::Error)
-        .set_title("TraceDraw")
+        .set_title("CorelCraft")
         .set_description(text)
         .set_buttons(rfd::MessageButtons::Ok)
         .show();

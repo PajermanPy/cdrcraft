@@ -142,7 +142,7 @@ pub fn show(app: &mut App, ctx: &Context) {
                         crate::ui::brand::paint_icon(ui.painter(), icon.as_ref(), r);
                         ui.vertical(|ui| {
                             ui.horizontal(|ui| {
-                                ui.label(RichText::new("TraceDraw").size(20.0).strong());
+                                ui.label(RichText::new("CorelCraft").size(20.0).strong());
                                 ui.label(
                                     RichText::new(tr("updates.badge"))
                                         .size(11.0)
