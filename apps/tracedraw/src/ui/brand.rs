@@ -31,7 +31,7 @@ pub fn icon(ctx: &Context) -> Option<TextureHandle> {
 /// TraceDraw. Set at build time with `CDRCRAFT_REPO` (no trailing slash).
 pub const REPO_URL: &str = match option_env!("CDRCRAFT_REPO") {
     Some(u) => u,
-    None => "https://github.com/cdrcraft/cdrcraft",
+    None => "https://github.com/PajermanPy/cdrcraft",
 };
 
 /// CDRCraft: the embedded 256 px icon as the window's own icon
