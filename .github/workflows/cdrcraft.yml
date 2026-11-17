@@ -41,8 +41,10 @@ jobs:
       - run: cargo test --release -p tracedraw-cdr -p tracedraw-cli
       - run: cargo test --release -p tracedraw
 
+  # Arma Linux y Windows en cada envío a main y en cada etiqueta, prueba
+  # los programas armados y, solo con una etiqueta, publica la versión.
   release:
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/v') || github.ref == 'refs/heads/main'
     needs: test
     strategy:
       fail-fast: false
@@ -66,8 +68,36 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y pkg-config libxkbcommon-dev libwayland-dev libgl1-mesa-dev \
-            libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgtk-3-dev
+            libx11-dev libxcursor-dev libxrandr-dev libxi-dev libgtk-3-dev xvfb
       - run: cargo build --release --locked -p tracedraw -p tracedraw-cli
+      - name: Probar la línea de comandos
+        shell: bash
+        run: |
+          set -e
+          cli=target/release/tracedraw-cli
+          f=crates/cdr/tests/fixtures/gaussian-blur.cdr
+          $cli info "$f"
+          for x in svg pdf png eps; do
+            $cli convert "$f" "prueba.$x"
+            test -s "prueba.$x" || { echo "prueba.$x vacío"; exit 1; }
+          done
+          $cli convert prueba.svg vuelta.cdr && $cli info vuelta.cdr
+      - name: Probar que el programa abre (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          export TRACEDRAW_CONFIG_DIR=$PWD/conf
+          xvfb-run -a timeout 20 target/release/tracedraw crates/cdr/tests/fixtures/gaussian-blur.cdr || rc=$?
+          # 124 = seguía abierto a los 20 s, que es lo esperado
+          test "${rc:-0}" = 124 || { echo "el programa se cerró solo (código ${rc:-0})"; exit 1; }
+      - name: Probar que el programa abre (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $env:TRACEDRAW_CONFIG_DIR = "$PWD\conf"
+          $p = Start-Process target/release/tracedraw.exe -ArgumentList "crates/cdr/tests/fixtures/gaussian-blur.cdr" -PassThru
+          Start-Sleep 20
+          if ($p.HasExited) { Write-Error "el programa se cerró solo (código $($p.ExitCode))"; exit 1 }
+          Stop-Process $p.Id
       - name: Empaquetar (Linux)
         if: runner.os == 'Linux'
         run: |
@@ -89,7 +119,16 @@ jobs:
           Copy-Item target/release/tracedraw-cli.exe "$d/cdrcraft-cli.exe"
           Copy-Item README.md, CDRCRAFT.md, PRIVACY.md, LICENSE-MIT, LICENSE-APACHE, ATTRIBUTION.md $d
           Compress-Archive -Path $d -DestinationPath "$d.zip"
+      - uses: actions/upload-artifact@v4
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        with:
+          name: cdrcraft-${{ matrix.name }}
+          path: |
+            cdrcraft-*.tar.gz
+            cdrcraft-*.zip
+          retention-days: 7
       - uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
         with:
           files: |
             cdrcraft-*.tar.gz
