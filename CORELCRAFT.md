@@ -6,7 +6,7 @@ editor vectorial de código abierto en Rust, con licencia MIT o Apache-2.0
 
 Cambios de CorelCraft sobre TraceDraw (rama `corelcraft`):
 - Nombre CorelCraft en la interfaz (todos los idiomas), título de ventana, id de aplicación `corelcraft` y lanzador `packaging/linux/corelcraft.desktop`.
-- Ícono de CorelCraft en `assets/icon`.
+- Logo propio (16/11/2026): "C" roja Budapest dibujada como curva con nodos y tirador, sobre fondo noche. Fuentes en `assets/logo` (ícono SVG/PNG y logo horizontal claro/oscuro con Montserrat); los PNG de `assets/icon` salen de ahí. La ventana pasa su propio ícono (`ui/brand.rs`, `window_icon`) para que KDE no muestre uno viejo de caché.
 - Paleta integrada "Budapest" con los colores de marca.
 - Búsqueda de actualizaciones desactivada por defecto (las actualizaciones de TraceDraw reemplazarían a CorelCraft).
 - El texto "Acerca de" cita a TraceDraw y su licencia.

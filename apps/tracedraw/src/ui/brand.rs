@@ -27,6 +27,19 @@ pub fn icon(ctx: &Context) -> Option<TextureHandle> {
     Some(tex)
 }
 
+/// CorelCraft: the embedded 256 px icon as the window's own icon
+/// (`_NET_WM_ICON` on X11), so title bars and task bars show it even
+/// when the desktop's icon theme cache is out of date.
+pub fn window_icon() -> Option<egui::IconData> {
+    let bytes = include_bytes!("../../../../assets/icon/tracedraw-256.png");
+    let img = image::load_from_memory(bytes).ok()?.to_rgba8();
+    Some(egui::IconData {
+        width: img.width(),
+        height: img.height(),
+        rgba: img.into_raw(),
+    })
+}
+
 /// The embedded 128 px icon as an egui image.
 pub(crate) fn icon_image() -> Option<egui::ColorImage> {
     let bytes = include_bytes!("../../../../assets/icon/tracedraw-128.png");

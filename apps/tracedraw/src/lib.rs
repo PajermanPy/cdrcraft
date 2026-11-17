@@ -469,12 +469,16 @@ pub fn run() -> eframe::Result<()> {
         // still created resizable: some window managers (Xfwm4) keep a
         // window made not resizable at its size for good, and the main
         // window it becomes could then neither be resized nor maximized.
-        egui::ViewportBuilder::default()
+        let b = egui::ViewportBuilder::default()
             .with_inner_size(splash::SIZE)
             .with_decorations(false)
             .with_resizable(true)
             .with_title("CorelCraft")
-            .with_app_id(splash::APP_ID)
+            .with_app_id(splash::APP_ID);
+        match crate::ui::brand::window_icon() {
+            Some(icon) => b.with_icon(icon),
+            None => b,
+        }
     } else {
         splash::main_window_builder(&settings, plain)
     };
