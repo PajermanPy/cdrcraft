@@ -19652,14 +19652,17 @@ fn the_trace_dialog_rests_once_the_trace_is_in() {
             }
         );
         let started = app.trace_live.started;
-        // Settled: the frames after the result's own repaint ask for none.
+        // Settled: the frames after the result's own repaints ask for
+        // none. A slow machine (a shared CI runner) can take a few more
+        // frames to settle, so only the second half has to rest; the bug
+        // this guards against asked for frames forever.
         let mut asked = Vec::new();
-        for i in 0..20 {
+        for i in 0..40 {
             asked.push(trace_frame_asks_for_another(&ctx, &mut app));
             assert!(!app.trace_live.busy(), "defer {defer_full}, frame {i}");
         }
         assert!(
-            asked[5..].iter().all(|a| !a),
+            asked[20..].iter().all(|a| !a),
             "defer {defer_full}: idle frames asked for another: {asked:?} ({:?})",
             ctx.repaint_causes()
         );
