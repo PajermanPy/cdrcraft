@@ -233,4 +233,4 @@ mod tests {
 /// CDRCraft revision after it. The release tag is `v` and this
 /// (`v0.47.0-cdrcraft.3`); the release workflow refuses a tag that does
 /// not match it, so the updater compares like with like.
-pub const VERSION: &str = "0.47.0-cdrcraft.3";
+pub const VERSION: &str = "0.47.0-cdrcraft.4";
