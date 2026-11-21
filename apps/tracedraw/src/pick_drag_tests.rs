@@ -19652,17 +19652,24 @@ fn the_trace_dialog_rests_once_the_trace_is_in() {
             }
         );
         let started = app.trace_live.started;
-        // Settled: the frames after the result's own repaints ask for
-        // none. A slow machine (a shared CI runner) can take a few more
-        // frames to settle, so only the second half has to rest; the bug
-        // this guards against asked for frames forever.
+        // Settled: after the result's own repaints the frames ask for
+        // none. On a slow machine (a shared CI runner) the result takes
+        // more frames to settle and another thread of the app may wake a
+        // frame later on, so the dialog has to reach ten resting frames
+        // in a row; the bug this guards against asked for frames forever.
         let mut asked = Vec::new();
-        for i in 0..40 {
-            asked.push(trace_frame_asks_for_another(&ctx, &mut app));
+        let mut resting = 0;
+        for i in 0..200 {
+            let a = trace_frame_asks_for_another(&ctx, &mut app);
+            asked.push(a);
             assert!(!app.trace_live.busy(), "defer {defer_full}, frame {i}");
+            resting = if a { 0 } else { resting + 1 };
+            if resting == 10 {
+                break;
+            }
         }
         assert!(
-            asked[20..].iter().all(|a| !a),
+            resting == 10,
             "defer {defer_full}: idle frames asked for another: {asked:?} ({:?})",
             ctx.repaint_causes()
         );
@@ -19690,10 +19697,21 @@ fn the_trace_dialog_rests_once_the_trace_is_in() {
         }
         assert_eq!(app.trace_live.started, started + 1, "defer {defer_full}");
         app.trace_live.join_workers();
-        for _ in 0..20 {
-            trace_frame_asks_for_another(&ctx, &mut app);
+        let mut resting = 0;
+        for _ in 0..200 {
+            resting = if trace_frame_asks_for_another(&ctx, &mut app) {
+                0
+            } else {
+                resting + 1
+            };
+            if resting == 10 {
+                break;
+            }
         }
-        assert!(!trace_frame_asks_for_another(&ctx, &mut app));
+        assert_eq!(
+            resting, 10,
+            "defer {defer_full}: rests again after the change"
+        );
         assert_eq!(app.trace_live.started, started + 1);
         assert!(app.trace_live.shown.as_ref().is_some_and(|s| s.done));
     }
@@ -28706,7 +28724,11 @@ fn a_clicked_handle_moves_with_the_arrow_keys() {
         "the handle moved: {:?}",
         ctrl1(&app)
     );
-    assert_eq!(app.node_selection, vec![(curve, 0)], "the node stays chosen");
+    assert_eq!(
+        app.node_selection,
+        vec![(curve, 0)],
+        "the node stays chosen"
+    );
     assert!(app.chosen_handle().is_none(), "no ring after a drag");
 }
 

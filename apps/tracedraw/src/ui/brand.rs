@@ -228,3 +228,9 @@ mod tests {
         assert!(c[0].x > 250.0 && c[3].x > 500.0);
     }
 }
+
+/// CDRCraft's own version: TraceDraw's version it is built on and the
+/// CDRCraft revision after it. The release tag is `v` and this
+/// (`v0.47.0-cdrcraft.3`); the release workflow refuses a tag that does
+/// not match it, so the updater compares like with like.
+pub const VERSION: &str = "0.47.0-cdrcraft.3";

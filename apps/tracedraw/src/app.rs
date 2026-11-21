@@ -9019,7 +9019,7 @@ impl App {
             _ => {}
         }
         let pending = self.settings.pending_update != self.settings.skipped_update
-            && crate::updates::is_newer(&self.settings.pending_update, env!("CARGO_PKG_VERSION"));
+            && crate::updates::is_newer(&self.settings.pending_update, crate::ui::brand::VERSION);
         let due = now.saturating_sub(self.settings.last_update_check) >= crate::updates::DAILY;
         if self.settings.check_updates
             && (due || pending)

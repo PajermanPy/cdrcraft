@@ -888,7 +888,21 @@ pub fn parse_hyphenated(word: &str, hyphenated: &str) -> Option<Vec<usize>> {
 }
 
 /// Give the text engine the definitions kept in the settings.
+/// The custom hyphens are one list for the whole process: a test that
+/// sets them holds this turn, so that the tests closing an options dialog
+/// meanwhile (which install their own, empty, list) wait for it.
+#[cfg(test)]
+pub(crate) static HYPHEN_TURN: std::sync::Mutex<()> = std::sync::Mutex::new(());
+#[cfg(test)]
+thread_local! {
+    /// This thread holds [`HYPHEN_TURN`].
+    pub(crate) static HOLDS_HYPHEN_TURN: std::cell::Cell<bool> = const { std::cell::Cell::new(false) };
+}
+
 pub fn install_custom_hyphens(app: &App) {
+    #[cfg(test)]
+    let _turn = (!HOLDS_HYPHEN_TURN.with(|h| h.get()))
+        .then(|| HYPHEN_TURN.lock().unwrap_or_else(|e| e.into_inner()));
     let defs: Vec<(String, Vec<usize>)> = app
         .settings
         .custom_hyphens
@@ -1285,6 +1299,15 @@ mod tests {
 
     #[test]
     fn custom_hyphens_turn_hyphenation_on_and_break_words() {
+        let _turn = HYPHEN_TURN.lock().unwrap_or_else(|e| e.into_inner());
+        HOLDS_HYPHEN_TURN.with(|h| h.set(true));
+        struct Release;
+        impl Drop for Release {
+            fn drop(&mut self) {
+                HOLDS_HYPHEN_TURN.with(|h| h.set(false));
+            }
+        }
+        let _release = Release;
         let mut app = App::headless();
         app.settings.custom_hyphens = vec![("en".into(), "TraceDraw".into(), "Trace-Draw".into())];
         install_custom_hyphens(&app);

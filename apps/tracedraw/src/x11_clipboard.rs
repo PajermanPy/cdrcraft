@@ -548,15 +548,11 @@ mod tests {
 
     pub fn x_server() -> Option<Server> {
         let turn = X_TESTS.lock().unwrap_or_else(|e| e.into_inner());
-        if let Some(d) = std::env::var("DISPLAY").ok().filter(|d| !d.is_empty()) {
-            if x11rb::connect(Some(&d)).is_ok() {
-                return Some(Server {
-                    display: d,
-                    child: None,
-                    _turn: turn,
-                });
-            }
-        }
+        // A private Xvfb first: on a desktop the session's clipboard
+        // manager (Klipper, GPaste...) asks every new owner for its
+        // contents at once, which drew the picture before the test asked
+        // for it, and the tests took over the user's own clipboard. The
+        // desktop's display only when there is no Xvfb.
         for n in 0..20 {
             let num = 200 + std::process::id() % 300 + n;
             if std::path::Path::new(&format!("/tmp/.X11-unix/X{num}")).exists() {
@@ -572,8 +568,8 @@ mod tests {
                 .args(["-nolisten", "tcp", "-noreset", "-screen", "0", "64x64x24"])
                 .stdout(std::process::Stdio::null())
                 .stderr(std::process::Stdio::null())
-                .spawn()
-                .ok()?;
+                .spawn();
+            let Ok(child) = child else { break };
             let mut child = Some(child);
             for _ in 0..100 {
                 if x11rb::connect(Some(&display)).is_ok() {
@@ -588,6 +584,15 @@ mod tests {
             if let Some(mut c) = child.take() {
                 let _ = c.kill();
                 let _ = c.wait();
+            }
+        }
+        if let Some(d) = std::env::var("DISPLAY").ok().filter(|d| !d.is_empty()) {
+            if x11rb::connect(Some(&d)).is_ok() {
+                return Some(Server {
+                    display: d,
+                    child: None,
+                    _turn: turn,
+                });
             }
         }
         None

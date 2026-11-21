@@ -299,7 +299,7 @@ fn paint(
         painter.galley(Pos2::new(track.left(), foot_y), g, brand::FOOTNOTE);
     }
     let v = painter.layout_no_wrap(
-        format!("v{}", env!("CARGO_PKG_VERSION")),
+        format!("v{}", crate::ui::brand::VERSION),
         small,
         brand::FOOTNOTE,
     );

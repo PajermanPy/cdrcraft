@@ -689,6 +689,11 @@ pub struct Settings {
     /// When that check last ran, seconds since 1970.
     #[serde(default)]
     pub last_update_check: u64,
+    /// CDRCraft: the update checks were turned on once, when the updater
+    /// learned CDRCraft's own releases (before, they were off because they
+    /// asked TraceDraw's). Turning them off later in Options stays.
+    #[serde(default)]
+    pub cdrcraft_updates_on: bool,
     /// CDRCraft: crash reports may be sent automatically (crash_report.rs).
     /// None until the user is asked, the first time there is one to send.
     #[serde(default)]
@@ -2216,8 +2221,9 @@ impl Default for Settings {
             ai_vectorize: Default::default(),
             ai_image: None,
             mcp_window: false,
-            check_updates: false,
+            check_updates: true,
             update_check_asked: true,
+            cdrcraft_updates_on: true,
             last_update_check: 0,
             crash_reports: None,
             skipped_update: String::new(),
@@ -2316,6 +2322,11 @@ impl Settings {
     ///    Wayland desktop without title bars for programs (#2486).
     pub fn upgrade(mut self) -> Settings {
         self.autocorrect.upgrade();
+        if !self.cdrcraft_updates_on {
+            self.check_updates = true;
+            self.update_check_asked = true;
+            self.cdrcraft_updates_on = true;
+        }
         if self.upgrades < 1 {
             self.treat_all_filled = true;
         }
@@ -3219,8 +3230,8 @@ mod tests {
         let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let folder = root.join("packaging/windows/portable").join(PORTABLE_DIR);
         assert!(folder.join("README.txt").is_file(), "{folder:?}");
-        let workflow =
-            std::fs::read_to_string(root.join(".github/workflows-tracedraw/build.yml")).expect("workflow");
+        let workflow = std::fs::read_to_string(root.join(".github/workflows-tracedraw/build.yml"))
+            .expect("workflow");
         assert!(workflow.contains(&format!("packaging\\windows\\portable\\{PORTABLE_DIR}")));
         assert!(workflow.contains(&format!("\\{PORTABLE_DIR}\",")));
     }

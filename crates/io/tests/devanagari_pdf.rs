@@ -29,6 +29,21 @@ fn fonts() -> &'static tracedraw_text::FontSystem {
     tracedraw_text::fonts()
 }
 
+/// Whether the test's Devanagari font is the one its family finds. A
+/// system with another version of Noto Sans Devanagari installed finds
+/// that one first, with other glyph numbers than the file embeds, and the
+/// tests that read the letters from the installed font have nothing to
+/// test there.
+fn test_font_found() -> bool {
+    let found = fonts()
+        .face_file(DEVA, false, false)
+        .is_some_and(|f| f.as_slice() == NOTO_DEVA);
+    if !found {
+        eprintln!("another {DEVA} is installed on this system; skipped");
+    }
+    found
+}
+
 /// The glyph ids `text` lays out to in the Devanagari font.
 fn gids(text: &str) -> Vec<u16> {
     let spans = [TextSpan::new(text, DEVA, 24.0)];
@@ -274,6 +289,9 @@ fn scrambled_pdf(words: &[&str]) -> Vec<u8> {
 /// ऋषि as ऋषष, वर्ष as वषड, डॉक्टर as र्ॉक्टर and सहिष्णुता as सहहष्णुता.
 #[test]
 fn hindi_with_a_scrambled_tounicode_map_imports_as_the_typed_words() {
+    if !test_font_found() {
+        return;
+    }
     let _ = fonts();
     let words = [
         "उर्मिला",
@@ -417,6 +435,9 @@ fn hard_hindi_and_sanskrit_words_come_back_from_a_pdf() {
 /// comes in as typed.
 #[test]
 fn the_words_reported_as_wrong_import_as_typed_with_the_font_installed() {
+    if !test_font_found() {
+        return;
+    }
     let _ = fonts();
     let words = [
         "प्रमाण-पत्र",
@@ -486,6 +507,9 @@ fn the_words_reported_as_wrong_import_as_typed_with_the_font_installed() {
 /// glyphs.
 #[test]
 fn every_word_of_a_scrambled_file_imports_as_typed_with_the_font_installed() {
+    if !test_font_found() {
+        return;
+    }
     let _ = fonts();
     let words = [
         "उर्मिला",

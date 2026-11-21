@@ -92,7 +92,7 @@ pub fn show(app: &mut App, ctx: &Context) {
     let Some(release) = release(app) else {
         return;
     };
-    let version = env!("CARGO_PKG_VERSION");
+    let version = crate::ui::brand::VERSION;
     // Once an install was started the card shows its progress as the
     // update dialog does; before, a line of text.
     let phase = crate::ui::update_progress::phase(&install, app.installer.progress());

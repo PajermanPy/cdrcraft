@@ -20,9 +20,9 @@ use serde::Deserialize;
 use std::sync::{Arc, Mutex};
 
 /// The project's latest release, as GitHub describes it.
-pub const LATEST_URL: &str = "https://api.github.com/repos/tracedraw/tracedraw/releases/latest";
+pub const LATEST_URL: &str = "https://api.github.com/repos/PajermanPy/cdrcraft/releases/latest";
 /// The release list, for when no download fits this system.
-pub const RELEASES_PAGE: &str = "https://github.com/tracedraw/tracedraw/releases";
+pub const RELEASES_PAGE: &str = "https://github.com/PajermanPy/cdrcraft/releases";
 /// TraceDraw's page in the Microsoft Store (the browser version offers it
 /// on Windows).
 pub const MICROSOFT_STORE_PAGE: &str = "https://apps.microsoft.com/detail/9P50L12VHF33";
@@ -106,10 +106,19 @@ fn parse_version(s: &str) -> Option<(u64, u64, u64)> {
     Some((major, minor, patch))
 }
 
-/// Whether `tag` names a version later than `current`.
+/// The CDRCraft revision of a version (`3` of `0.47.0-cdrcraft.3`), 0
+/// for a version without one.
+fn cdrcraft_revision(s: &str) -> u64 {
+    s.split_once("-cdrcraft.")
+        .and_then(|(_, r)| r.split(['-', '+']).next()?.parse().ok())
+        .unwrap_or(0)
+}
+
+/// Whether `tag` names a version later than `current`: the version of
+/// TraceDraw first, then the CDRCraft revision after it.
 pub fn is_newer(tag: &str, current: &str) -> bool {
     match (parse_version(tag), parse_version(current)) {
-        (Some(a), Some(b)) => a > b,
+        (Some(a), Some(b)) => (a, cdrcraft_revision(tag)) > (b, cdrcraft_revision(current)),
         _ => false,
     }
 }
@@ -164,6 +173,17 @@ pub fn asset_names(version: &str, os: &str, arch: &str, kind: Kind) -> Vec<Strin
     if arch == "x86" && os != "windows" {
         return Vec::new();
     }
+    // CDRCraft's release files (cdrcraft.yml) come first: a tar.gz for
+    // Linux and a zip for Windows, each holding one folder, built for
+    // x86_64 only.
+    let mut names = match (os, kind) {
+        _ if arch != "x86_64" => Vec::new(),
+        ("linux", Kind::Tarball) => vec![format!("cdrcraft-v{version}-linux-{a}.tar.gz")],
+        ("windows", Kind::Portable | Kind::Setup) => {
+            vec![format!("cdrcraft-v{version}-windows-{a}.zip")]
+        }
+        _ => Vec::new(),
+    };
     let one = match (os, kind) {
         ("linux", Kind::AppImage) if arch == "x86_64" => {
             return vec![
@@ -177,9 +197,10 @@ pub fn asset_names(version: &str, os: &str, arch: &str, kind: Kind) -> Vec<Strin
         ("windows", Kind::Setup) => format!("tracedraw-{version}-windows-{a}-setup.exe"),
         ("windows", Kind::Portable) => format!("tracedraw-{version}-windows-{a}-portable.zip"),
         ("macos", Kind::Dmg) => format!("tracedraw-{version}-macos-{a}.dmg"),
-        _ => return Vec::new(),
+        _ => return names,
     };
-    vec![one]
+    names.push(one);
+    names
 }
 
 /// How a Linux copy was installed: run as an AppImage, inside a sandbox
@@ -306,17 +327,20 @@ pub fn parse_latest(
             .find_map(|name| r.assets.iter().find(|a| a.name == name))
     };
     let download = find(kind).map(|a| a.browser_download_url.clone());
+    // A copy installed with a setup program is not updated from a zip.
     let installer = if kind != Kind::Other {
-        find(kind).and_then(|a| {
-            let hex = a.digest.as_deref()?.strip_prefix("sha256:")?;
-            (hex.len() == 64 && hex.bytes().all(|b| b.is_ascii_hexdigit()) && a.size > 0).then(
-                || Package {
-                    url: a.browser_download_url.clone(),
-                    sha256: hex.to_ascii_lowercase(),
-                    size: a.size,
-                },
-            )
-        })
+        find(kind)
+            .filter(|a| !(kind == Kind::Setup && a.name.ends_with(".zip")))
+            .and_then(|a| {
+                let hex = a.digest.as_deref()?.strip_prefix("sha256:")?;
+                (hex.len() == 64 && hex.bytes().all(|b| b.is_ascii_hexdigit()) && a.size > 0).then(
+                    || Package {
+                        url: a.browser_download_url.clone(),
+                        sha256: hex.to_ascii_lowercase(),
+                        size: a.size,
+                    },
+                )
+            })
     } else {
         None
     };
@@ -363,7 +387,7 @@ impl Checker {
                     Ok(r) if r.status == 200 => {
                         match parse_latest(
                             &r.body,
-                            env!("CARGO_PKG_VERSION"),
+                            crate::ui::brand::VERSION,
                             "web",
                             "wasm32",
                             Kind::Other,
@@ -392,7 +416,7 @@ impl Checker {
                 let result = fetch().and_then(|json| {
                     parse_latest(
                         &json,
-                        env!("CARGO_PKG_VERSION"),
+                        crate::ui::brand::VERSION,
                         std::env::consts::OS,
                         std::env::consts::ARCH,
                         current_kind(),
@@ -1115,9 +1139,14 @@ pub fn clean_leftovers() {
 /// program `main` (which may have been renamed): the program, and the
 /// command line tool when it is installed there; nothing else.
 fn tarball_name(entry: &str, main: &str, dir: &std::path::Path) -> Option<String> {
+    // CDRCraft's tar.gz holds one folder (cdrcraft-v…-linux-x86_64/).
+    let entry = match entry.split_once('/') {
+        Some((top, rest)) if top.starts_with("cdrcraft-") && !rest.contains('/') => rest,
+        _ => entry,
+    };
     match entry {
-        "tracedraw" => Some(main.to_string()),
-        "tracedraw-cli" if dir.join(entry).is_file() => Some(entry.to_string()),
+        "tracedraw" | "cdrcraft" => Some(main.to_string()),
+        "tracedraw-cli" | "cdrcraft-cli" if dir.join(entry).is_file() => Some(entry.to_string()),
         _ => None,
     }
 }
@@ -1125,6 +1154,14 @@ fn tarball_name(entry: &str, main: &str, dir: &std::path::Path) -> Option<String
 /// The name a portable zip's entry is installed under: files at the top
 /// level of the zip only, so never the settings folder.
 fn portable_name(entry: &str, main: &str) -> Option<String> {
+    // CDRCraft's zip holds one folder (cdrcraft-v…-windows-x86_64/).
+    let entry = match entry.split_once(['/', '\\']) {
+        Some((top, rest)) if top.starts_with("cdrcraft-") => rest,
+        _ => entry,
+    };
+    if entry == "cdrcraft.exe" {
+        return Some(main.to_string());
+    }
     let plain = !entry.is_empty() && !entry.starts_with('.') && !entry.contains(['/', '\\', ':']);
     plain.then(|| {
         if entry == "tracedraw.exe" {
@@ -1885,7 +1922,7 @@ pub(crate) fn download(url: &str) -> Result<Box<dyn std::io::Read + Send>, Strin
             .build()
             .header(
                 "User-Agent",
-                concat!("TraceDraw/", env!("CARGO_PKG_VERSION")),
+                concat!("CDRCraft/", env!("CARGO_PKG_VERSION")),
             )
             .call()
             .map_err(|e| e.to_string())?;
@@ -1918,7 +1955,7 @@ fn fetch() -> Result<String, String> {
         .get(LATEST_URL)
         .header(
             "User-Agent",
-            concat!("TraceDraw/", env!("CARGO_PKG_VERSION")),
+            concat!("CDRCraft/", env!("CARGO_PKG_VERSION")),
         )
         .header("Accept", "application/vnd.github+json")
         .call()
@@ -2745,6 +2782,96 @@ mod tests {
             .collect();
         names.sort();
         names
+    }
+
+    /// CDRCraft's releases (v0.47.0-cdrcraft.N) compare by the CDRCraft
+    /// revision after TraceDraw's version, and a newer TraceDraw version
+    /// beats any revision of an older one.
+    #[test]
+    fn cdrcraft_revisions_compare_after_the_version() {
+        assert!(is_newer("v0.47.0-cdrcraft.3", "0.47.0-cdrcraft.2"));
+        assert!(is_newer("v0.47.0-cdrcraft.10", "0.47.0-cdrcraft.9"));
+        assert!(!is_newer("v0.47.0-cdrcraft.2", "0.47.0-cdrcraft.2"));
+        assert!(!is_newer("v0.47.0-cdrcraft.1", "0.47.0-cdrcraft.2"));
+        assert!(is_newer("v0.48.0-cdrcraft.1", "0.47.0-cdrcraft.9"));
+        assert!(is_newer("v0.47.0-cdrcraft.1", "0.47.0"));
+        assert!(is_newer(
+            &format!("v{}", crate::ui::brand::VERSION),
+            "0.47.0-cdrcraft.2"
+        ));
+    }
+
+    /// The release CDRCraft's workflow publishes is found by its own
+    /// names: the tar.gz updates a Linux copy in place, the zip is only
+    /// a download for a Windows copy installed with a setup program.
+    #[test]
+    fn cdrcraft_release_files_are_found() {
+        let json = r#"{"tag_name": "v0.47.0-cdrcraft.9", "html_url": "https://github.com/PajermanPy/cdrcraft/releases/tag/v0.47.0-cdrcraft.9", "draft": false, "prerelease": false, "assets": [
+            {"name": "cdrcraft-v0.47.0-cdrcraft.9-linux-x86_64.tar.gz", "browser_download_url": "https://x/l.tar.gz", "size": 5, "digest": "sha256:2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824"},
+            {"name": "cdrcraft-v0.47.0-cdrcraft.9-windows-x86_64.zip", "browser_download_url": "https://x/w.zip", "size": 5, "digest": "sha256:2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824"}
+        ]}"#;
+        let linux = parse_latest(json, "0.47.0-cdrcraft.2", "linux", "x86_64", Kind::Tarball)
+            .expect("parsed")
+            .expect("newer");
+        assert_eq!(linux.version, "0.47.0-cdrcraft.9");
+        assert_eq!(linux.download.as_deref(), Some("https://x/l.tar.gz"));
+        assert_eq!(linux.installer.expect("in place").size, 5);
+        let portable = parse_latest(
+            json,
+            "0.47.0-cdrcraft.2",
+            "windows",
+            "x86_64",
+            Kind::Portable,
+        )
+        .expect("parsed")
+        .expect("newer");
+        assert_eq!(portable.download.as_deref(), Some("https://x/w.zip"));
+        assert!(portable.installer.is_some());
+        let setup = parse_latest(json, "0.47.0-cdrcraft.2", "windows", "x86_64", Kind::Setup)
+            .expect("parsed")
+            .expect("newer");
+        assert_eq!(setup.download.as_deref(), Some("https://x/w.zip"));
+        assert!(
+            setup.installer.is_none(),
+            "a setup copy is not updated from a zip"
+        );
+        assert!(
+            parse_latest(json, "0.47.0-cdrcraft.9", "linux", "x86_64", Kind::Tarball)
+                .expect("parsed")
+                .is_none()
+        );
+    }
+
+    /// CDRCraft's tar.gz holds one folder with cdrcraft and cdrcraft-cli
+    /// in it: they replace the running program and the tool beside it.
+    #[test]
+    fn the_cdrcraft_tar_gz_replaces_the_program_and_its_tool() {
+        let dir = scratch("cdrcraft-tarball");
+        let exe = dir.join("CDRCraft");
+        std::fs::write(&exe, b"old program").expect("write");
+        std::fs::write(dir.join("cdrcraft-cli"), b"old tool").expect("write");
+        let archive = dir.join("update.tar.gz");
+        let top = "cdrcraft-v0.47.0-cdrcraft.9-linux-x86_64";
+        std::fs::write(
+            &archive,
+            tar_gz(&[
+                tar_entry(&format!("{top}/"), b"", 0o755, b'5'),
+                tar_entry(&format!("{top}/cdrcraft"), b"new program", 0o755, b'0'),
+                tar_entry(&format!("{top}/cdrcraft-cli"), b"new tool", 0o755, b'0'),
+                tar_entry(&format!("{top}/README.md"), b"readme", 0o644, b'0'),
+                tar_entry(&format!("{top}/icon/x/cdrcraft"), b"no", 0o644, b'0'),
+            ]),
+        )
+        .expect("write");
+        install_tarball(&archive, &exe).expect("installs");
+        assert_eq!(std::fs::read(&exe).expect("read"), b"new program");
+        assert_eq!(
+            std::fs::read(dir.join("cdrcraft-cli")).expect("read"),
+            b"new tool"
+        );
+        assert!(!dir.join("README.md").exists());
+        assert!(!dir.join("cdrcraft").exists());
+        assert!(leftovers(&dir).is_empty(), "{:?}", leftovers(&dir));
     }
 
     /// The tar.gz update replaces the program (whatever the copy is

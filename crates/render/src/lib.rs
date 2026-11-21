@@ -10724,9 +10724,11 @@ mod band_tests {
             assert!(got.is_empty(), "one core: drawn whole");
             return;
         }
+        // About three bands a core, of at least 64 rows: the 700 rows
+        // here make ten, or one a core on a machine with more cores.
         assert!(
-            got.len() > cores.min(16),
-            "more bands than cores: {}",
+            got.len() >= cores.min(700 / 64),
+            "a band or more a core: {} bands, {cores} cores",
             got.len()
         );
         let row = 900 * 4;

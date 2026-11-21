@@ -70,6 +70,9 @@ impl Mode {
     /// adapter with hardware acceleration off.
     pub fn first(s: &crate::settings::Settings) -> Mode {
         if s.hardware_acceleration {
+            if gl_first_here() {
+                return Mode::Gl;
+            }
             Mode::Hardware
         } else {
             Mode::Software
@@ -83,7 +86,7 @@ impl Mode {
         match first {
             Mode::Hardware => &[Mode::Hardware, Mode::Gl, Mode::Software],
             Mode::Software => &[Mode::Software, Mode::Gl],
-            Mode::Gl => &[Mode::Gl, Mode::Software],
+            Mode::Gl => &[Mode::Gl, Mode::Hardware, Mode::Software],
         }
     }
 
@@ -93,6 +96,23 @@ impl Mode {
         let at = chain.iter().position(|m| *m == self)?;
         chain.get(at + 1).copied()
     }
+}
+
+/// Whether the graphics card is driven better through OpenGL than
+/// through wgpu here: NVIDIA's own driver on Linux, in a Wayland session.
+/// There every picture handed to the window through wgpu's Vulkan
+/// backend crawled (the copy into the driver's memory ran at tens of MB a
+/// second), so a zoom over a page of scans showed a frame every 0.8 s to
+/// 2 s, while OpenGL on the same card showed one every 24 ms. OpenGL
+/// draws on the card too. Under X11 (XWayland) NVIDIA's EGL cannot draw
+/// on the window, so there wgpu stays.
+pub fn gl_first_here() -> bool {
+    // The tests ask for the choice the settings make, wherever they run.
+    !cfg!(test)
+        && cfg!(target_os = "linux")
+        && std::path::Path::new("/proc/driver/nvidia/version").exists()
+        && std::env::var_os("WAYLAND_DISPLAY").is_some_and(|d| !d.is_empty())
+        && std::env::var_os("CDRCRAFT_NO_GL_FIRST").is_none()
 }
 
 /// What the adapter choice knows of one adapter.
@@ -1149,8 +1169,10 @@ mod tests {
         // Hardware acceleration off: the software adapter, then OpenGL.
         assert_eq!(Mode::Software.next(Mode::Software), Some(Mode::Gl));
         assert_eq!(Mode::Gl.next(Mode::Software), None);
-        // Remembered OpenGL that fails falls to the software adapter.
-        assert_eq!(Mode::Gl.next(Mode::Gl), Some(Mode::Software));
+        // OpenGL first (NVIDIA's driver under Wayland) that fails falls
+        // to wgpu on the card, then to the software adapter.
+        assert_eq!(Mode::Gl.next(Mode::Gl), Some(Mode::Hardware));
+        assert_eq!(Mode::Hardware.next(Mode::Gl), Some(Mode::Software));
         assert_eq!(Mode::Software.next(Mode::Gl), None);
         // The renderer that opened the window last time, unless it is the
         // first choice anyway; hardware acceleration off starts in software.

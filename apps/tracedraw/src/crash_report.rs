@@ -135,7 +135,7 @@ pub fn envelope(target: &Target, report: &str, log: &str, id: &str, timestamp: u
         "platform": "native",
         "level": "fatal",
         "logger": "panic",
-        "release": format!("cdrcraft@{}", env!("CARGO_PKG_VERSION")),
+        "release": format!("cdrcraft@{}", crate::ui::brand::VERSION),
         "environment": if cfg!(debug_assertions) { "debug" } else { "release" },
         "message": { "formatted": first },
         "exception": { "values": [ {
