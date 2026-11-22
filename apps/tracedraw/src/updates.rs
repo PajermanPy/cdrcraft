@@ -3108,41 +3108,45 @@ mod tests {
         );
     }
 
-    /// Against GitHub: the latest release's x86_64 AppImage downloads and
-    /// checks out. Run by hand (`cargo test -- --ignored`), it needs the network.
+    /// Against GitHub: CDRCraft's latest release is newer than revision
+    /// 0.47.0-cdrcraft.3, and its Linux tar.gz downloads, checks out and
+    /// replaces a copy of the program and its tool in a folder of their
+    /// own. Run by hand (`cargo test -- --ignored live_install`), it needs
+    /// the network.
     #[test]
     #[ignore]
     fn live_install_from_the_latest_release() {
         let json = fetch().expect("latest release");
-        let r = parse_latest(&json, "0.0.1", "linux", "x86_64", Kind::AppImage)
+        let r = parse_latest(&json, "0.47.0-cdrcraft.3", "linux", "x86_64", Kind::Tarball)
             .expect("parses")
             .expect("newer");
-        let p = r.installer.expect("appimage with digest");
-        // v0.19.8 and earlier name it linux-x86_64, later ones linux-amd64.
-        assert!(
-            p.url.ends_with("-linux-x86_64.AppImage") || p.url.ends_with("-linux-amd64.AppImage"),
-            "{}",
-            p.url
-        );
-        let dir = std::env::temp_dir().join(format!("td-live-{}", std::process::id()));
+        let p = r.installer.expect("tar.gz with digest");
+        assert!(p.url.ends_with("-linux-x86_64.tar.gz"), "{}", p.url);
+        let dir = std::env::temp_dir().join(format!("cdrcraft-live-{}", std::process::id()));
         let _ = std::fs::create_dir_all(&dir);
-        let target = dir.join("TraceDraw.AppImage");
+        let target = dir.join("CDRCraft");
         std::fs::write(&target, b"old").expect("write");
+        std::fs::write(dir.join("cdrcraft-cli"), b"old tool").expect("write");
         let installer = Installer::default();
         installer.start(
             r.version.clone(),
             p.clone(),
-            InstallTarget::AppImage(target.clone()),
+            InstallTarget::Tarball(target.clone()),
             None,
         );
-        for _ in 0..1200 {
-            if !matches!(installer.get(), InstallState::Downloading { .. }) {
+        for _ in 0..3000 {
+            if !installer.get().busy() {
                 break;
             }
             std::thread::sleep(std::time::Duration::from_millis(100));
         }
-        assert_eq!(installer.get(), InstallState::Installed(r.version));
-        assert_eq!(std::fs::metadata(&target).expect("meta").len(), p.size);
+        assert_eq!(installer.get(), InstallState::Installed(r.version.clone()));
+        assert!(std::fs::metadata(&target).expect("meta").len() > 10_000_000);
+        let out = std::process::Command::new(dir.join("cdrcraft-cli"))
+            .output()
+            .expect("the new tool runs");
+        assert!(String::from_utf8_lossy(&out.stderr).contains("cdrcraft-cli inspect"));
+        eprintln!("installed {} from {}", r.version, p.url);
         let _ = std::fs::remove_dir_all(&dir);
     }
 
